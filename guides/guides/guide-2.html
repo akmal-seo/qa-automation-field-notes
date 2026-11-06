@@ -1,0 +1,441 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Practical API Testing Strategies | QA Automation Field Notes</title>
+
+  <meta name="description" content="Learn practical API testing strategies covering response validation, authentication, authorization, boundary testing, integration checks, and automated API test design.">
+
+  <meta name="robots" content="index, follow">
+  <link rel="stylesheet" href="../assets/style.css">
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="container nav-wrapper">
+    <a href="../index.html" class="brand">
+      <span class="brand-mark">QA</span>
+      <span>QA Automation Field Notes</span>
+    </a>
+
+    <nav class="main-nav" aria-label="Main navigation">
+      <a href="../index.html">Home</a>
+      <a href="../resources.html">Resources</a>
+      <a href="../about.html">About</a>
+    </nav>
+  </div>
+</header>
+
+<main>
+
+<section class="hero">
+  <div class="container hero-content">
+
+    <span class="eyebrow">FIELD GUIDE 02 / API QUALITY</span>
+
+    <h1>
+      Practical API Testing
+      <span>Strategies for Modern Applications</span>
+    </h1>
+
+    <p>
+      A detailed look at API validation, authentication,
+      authorization, data integrity, negative scenarios,
+      and integration testing techniques.
+    </p>
+
+  </div>
+</section>
+
+<article class="section">
+  <div class="container narrow-container">
+
+    <span class="section-label">INTRODUCTION</span>
+
+    <h2>Why API Testing Matters</h2>
+
+    <p>
+      Application Programming Interfaces allow different
+      software components to exchange information and
+      coordinate business operations.
+    </p>
+
+    <p>
+      An API failure can affect multiple application
+      features, including authentication, user registration,
+      payment processing, reporting, and third-party
+      integrations.
+    </p>
+
+    <p>
+      API testing helps identify problems at the service
+      boundary without requiring every validation to
+      pass through the graphical user interface.
+    </p>
+
+    <h2>1. Understand the API Contract</h2>
+
+    <p>
+      Before writing automated API tests, understand
+      the endpoint's expected behavior.
+    </p>
+
+    <p>
+      Review the following:
+    </p>
+
+    <ul>
+      <li>HTTP methods and endpoint paths.</li>
+      <li>Required and optional request parameters.</li>
+      <li>Request body structure and supported data types.</li>
+      <li>Authentication and authorization requirements.</li>
+      <li>Expected response structures.</li>
+      <li>Documented status codes and error responses.</li>
+      <li>Business rules and data constraints.</li>
+    </ul>
+
+    <p>
+      OpenAPI specifications can provide a structured
+      description of endpoints, schemas, parameters,
+      and expected responses.
+    </p>
+
+    <h2>2. Validate Status Codes and Response Bodies</h2>
+
+    <p>
+      A successful HTTP status code does not necessarily
+      mean the API returned the correct business result.
+    </p>
+
+    <p>
+      Validate the response body, required properties,
+      data types, field values, and relevant business
+      conditions.
+    </p>
+
+    <pre><code>const response = await request.get('/api/users/101');
+
+expect(response.status()).toBe(200);
+
+const body = await response.json();
+
+expect(body).toHaveProperty('id', 101);
+expect(body).toHaveProperty('email');
+expect(body).toHaveProperty('status', 'active');</code></pre>
+
+    <p>
+      This example uses Playwright's API request fixture.
+      The expected response structure should match the
+      actual API contract.
+    </p>
+
+    <h2>3. Cover Positive and Negative Scenarios</h2>
+
+    <p>
+      Positive tests validate expected behavior when
+      valid requests are submitted. Negative tests
+      evaluate how the service responds when requests
+      contain invalid data or violate business rules.
+    </p>
+
+    <h3>Positive testing examples</h3>
+
+    <ul>
+      <li>Successfully creating a resource with valid data.</li>
+      <li>Retrieving an existing record.</li>
+      <li>Updating permitted fields.</li>
+      <li>Deleting a resource when authorized.</li>
+      <li>Submitting a valid search or filter request.</li>
+    </ul>
+
+    <h3>Negative testing examples</h3>
+
+    <ul>
+      <li>Submitting an empty required field.</li>
+      <li>Providing an invalid email or identifier.</li>
+      <li>Sending malformed JSON.</li>
+      <li>Using unsupported HTTP methods.</li>
+      <li>Providing incorrect data types.</li>
+      <li>Submitting duplicate or conflicting records.</li>
+      <li>Attempting an invalid state transition.</li>
+    </ul>
+
+    <p>
+      Verify that error responses are consistent,
+      meaningful, and do not expose internal stack
+      traces or sensitive implementation details.
+    </p>
+
+    <h2>4. Test Authentication and Authorization Separately</h2>
+
+    <p>
+      Authentication determines who is making a request.
+      Authorization determines what that authenticated
+      user is allowed to access or modify.
+    </p>
+
+    <p>
+      These are different security concerns and should
+      be validated independently.
+    </p>
+
+    <h3>Authentication scenarios</h3>
+
+    <ul>
+      <li>Request without an authentication token.</li>
+      <li>Request with an invalid token.</li>
+      <li>Request with an expired token.</li>
+      <li>Request with a malformed authorization header.</li>
+      <li>Request with valid authentication credentials.</li>
+    </ul>
+
+    <h3>Authorization scenarios</h3>
+
+    <ul>
+      <li>Accessing a resource with the correct role.</li>
+      <li>Attempting restricted actions with insufficient permissions.</li>
+      <li>Accessing another user's private records.</li>
+      <li>Attempting to modify protected account properties.</li>
+      <li>Testing administrator and standard-user permissions.</li>
+    </ul>
+
+    <h2>5. Perform Boundary and Data Validation Testing</h2>
+
+    <p>
+      API input validation should cover more than
+      typical valid and invalid values.
+    </p>
+
+    <p>
+      Identify the accepted boundaries for each field
+      and test values around those boundaries.
+    </p>
+
+    <ul>
+      <li>Minimum and maximum permitted lengths.</li>
+      <li>Values immediately below and above numeric limits.</li>
+      <li>Null, missing, empty, and whitespace-only values.</li>
+      <li>Unicode and special characters.</li>
+      <li>Unexpected date formats and timezone values.</li>
+      <li>Large payloads within documented limits.</li>
+      <li>Duplicate identifiers and unique-field conflicts.</li>
+    </ul>
+
+    <p>
+      The expected result should come from the documented
+      contract and business requirements rather than
+      assumptions about how the API should behave.
+    </p>
+
+    <h2>6. Verify Data Integrity and State Changes</h2>
+
+    <p>
+      For APIs that create or modify records, validate
+      the resulting state rather than relying only
+      on the immediate response.
+    </p>
+
+    <p>
+      A useful create-and-retrieve scenario can follow
+      this sequence:
+    </p>
+
+    <ol>
+      <li>Submit a valid creation request.</li>
+      <li>Capture the identifier returned by the service.</li>
+      <li>Retrieve the newly created record.</li>
+      <li>Compare its persisted values with the submitted data.</li>
+      <li>Update a permitted property.</li>
+      <li>Retrieve the record again and validate the update.</li>
+      <li>Clean up the test record where appropriate.</li>
+    </ol>
+
+    <p>
+      This approach helps identify persistence issues,
+      unexpected data transformations, and inconsistent
+      service behavior.
+    </p>
+
+    <h2>7. Validate Idempotency and Duplicate Requests</h2>
+
+    <p>
+      Some operations may be retried because of network
+      interruptions, client timeouts, or temporary
+      service failures.
+    </p>
+
+    <p>
+      Where an API contract promises idempotency,
+      repeated requests using the same idempotency
+      key should not create unintended duplicate
+      business operations.
+    </p>
+
+    <p>
+      Test repeated submissions, concurrent requests,
+      duplicate resource creation, and the handling
+      of conflicting updates.
+    </p>
+
+    <h2>8. Test Integration and Dependency Failures</h2>
+
+    <p>
+      Modern APIs frequently depend on databases,
+      external services, queues, payment gateways,
+      or other internal applications.
+    </p>
+
+    <p>
+      Test how the API behaves when a dependency
+      becomes unavailable, responds slowly, returns
+      invalid data, or rejects a request.
+    </p>
+
+    <p>
+      Consider:
+    </p>
+
+    <ul>
+      <li>Connection failures and request timeouts.</li>
+      <li>Unexpected upstream status codes.</li>
+      <li>Partial processing failures.</li>
+      <li>Retry and recovery behavior.</li>
+      <li>Duplicate event processing.</li>
+      <li>Data consistency across integrated services.</li>
+    </ul>
+
+    <h2>9. Organize API Automation for Maintainability</h2>
+
+    <p>
+      A structured API automation project separates
+      endpoint interactions, request configuration,
+      test data, authentication, and assertions.
+    </p>
+
+    <pre><code>api-tests/
+  authentication/
+  users/
+  products/
+  orders/
+
+helpers/
+  apiClient.js
+  authHelper.js
+  dataFactory.js
+
+config/
+  environments.js
+
+reports/
+  execution-results/</code></pre>
+
+    <p>
+      This is an illustrative structure. Organize
+      modules according to the size and complexity
+      of the application.
+    </p>
+
+    <h2>10. Integrate API Tests into CI/CD</h2>
+
+    <p>
+      Automated API checks can run during pull requests,
+      scheduled regression execution, and release
+      validation.
+    </p>
+
+    <p>
+      Keep fast contract and critical business checks
+      close to development workflows. Run broader
+      integration and regression scenarios according
+      to their execution cost and risk.
+    </p>
+
+    <p>
+      Execution reports should identify the endpoint,
+      request context, expected result, actual response,
+      and relevant diagnostic information without
+      exposing credentials or sensitive data.
+    </p>
+
+    <h2>API Testing Checklist</h2>
+
+    <ul>
+      <li>Validate HTTP methods and endpoint behavior.</li>
+      <li>Verify response schemas and business values.</li>
+      <li>Cover positive and negative requests.</li>
+      <li>Test authentication and role-based permissions.</li>
+      <li>Cover boundary values and invalid inputs.</li>
+      <li>Verify database persistence and state transitions.</li>
+      <li>Check duplicate requests and idempotency.</li>
+      <li>Test integration and dependency failures.</li>
+      <li>Validate performance against defined requirements.</li>
+      <li>Include API checks in the appropriate CI/CD stages.</li>
+    </ul>
+
+    <h2>Conclusion</h2>
+
+    <p>
+      Effective API testing validates the complete
+      service contract, including inputs, responses,
+      security controls, data integrity, and failure
+      behavior.
+    </p>
+
+    <p>
+      A balanced strategy combines focused functional
+      checks, negative testing, integration validation,
+      and automated execution. This provides stronger
+      evidence about service quality than checking
+      response status codes alone.
+    </p>
+
+    <div class="hero-actions">
+      <a href="guide-3.html" class="button button-primary">
+        Next Guide →
+      </a>
+
+      <a href="../index.html" class="button button-secondary">
+        Back to Home
+      </a>
+    </div>
+
+  </div>
+</article>
+
+</main>
+
+<footer class="site-footer">
+
+  <div class="container footer-content">
+
+    <div>
+      <a href="../index.html" class="footer-brand">
+        QA Automation Field Notes
+      </a>
+
+      <p>
+        Independent educational notes on software testing
+        and automation engineering.
+      </p>
+    </div>
+
+    <div class="footer-links">
+      <a href="../index.html">Home</a>
+      <a href="../about.html">About</a>
+      <a href="../resources.html">Resources</a>
+    </div>
+
+  </div>
+
+  <div class="container footer-bottom">
+    <p>© 2026 QA Automation Field Notes.</p>
+  </div>
+
+</footer>
+
+</body>
+</html>
